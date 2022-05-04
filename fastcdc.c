@@ -3,7 +3,7 @@
 
 #define FASTCDC_CLAMP(x, a, b) ((x < (a)) ? (a) : ((x > b) ? b : x))
 #define FASTCDC_DIVCEIL(a, b) ((a) / (b) + ((a) % (b) ? 1 : 0))
-#define FASTCDC_MASK(x) (uint32_t)((1 << FASTCDC_CLAMP(x, 1, 31)) - 1);
+#define FASTCDC_MASK(x) (uint32_t)((1 << FASTCDC_CLAMP(x, 1, 31)) - 1)
 
 #define AVERAGE_MIN (1 << 8)
 #define AVERAGE_MAX (1 << 28)
@@ -88,14 +88,16 @@ static uint32_t cut(const uint8_t *src, const uint32_t len, const uint32_t mi,
 }
 
 fcdc_ctx fastcdc_init(uint32_t mi, uint32_t av, uint32_t ma) {
-  fcdc_ctx ctx = {0};
-  ctx.mi = FASTCDC_CLAMP(mi, MINIMUM_MIN, MINIMUM_MAX);
-  ctx.av = FASTCDC_CLAMP(av, AVERAGE_MIN, AVERAGE_MAX);
-  ctx.ma = FASTCDC_CLAMP(ma, MAXIMUM_MIN, MAXIMUM_MAX);
-  ctx.ns = normal_size(mi, av, ma);
   uint32_t bits = (uint32_t)round(log2(av));
-  ctx.mask_s = FASTCDC_MASK(bits + 1);
-  ctx.mask_l = FASTCDC_MASK(bits - 1);
+  fcdc_ctx ctx = {
+    .mi = FASTCDC_CLAMP(mi, MINIMUM_MIN, MINIMUM_MAX),
+    .av = FASTCDC_CLAMP(av, AVERAGE_MIN, AVERAGE_MAX),
+    .ma = FASTCDC_CLAMP(ma, MAXIMUM_MIN, MAXIMUM_MAX),
+    .ns = normal_size(mi, av, ma),
+    .mask_s = FASTCDC_MASK(bits + 1),
+    .mask_l = FASTCDC_MASK(bits - 1),
+    .pos = 0
+  };
   return ctx;
 }
 
