@@ -1,7 +1,6 @@
 #ifndef FASTCDC_H
 #define FASTCDC_H
 
-#include "kvec.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,16 +15,20 @@ typedef struct {
   size_t pos;
 } fcdc_ctx;
 
-typedef struct {
-  size_t offset;
-  size_t len;
-} chunk;
+#define MAP_VEC_LEN 3
 
-typedef kvec_t(chunk) chunk_vec;
+typedef int(*on_chunk)(size_t offset, size_t len);
+
+typedef struct {
+    size_t chunk_id;
+    size_t chunk_len;
+    uint8_t front[MAP_VEC_LEN];
+    uint8_t end[MAP_VEC_LEN];
+} map_entry;
 
 fcdc_ctx fastcdc_init(uint32_t mi, uint32_t av, uint32_t ma);
 size_t fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end,
-                      chunk_vec *cv);
+                      on_chunk cb);
 size_t fastcdc_stream(FILE *stream, uint32_t mi, uint32_t av, uint32_t ma,
-                      chunk_vec *cv);
+                      on_chunk cb);
 #endif

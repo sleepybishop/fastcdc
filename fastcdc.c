@@ -68,6 +68,7 @@ static uint32_t normal_size(const uint32_t mi, const uint32_t av,
   return sz;
 }
 
+
 static uint32_t cut(const uint8_t *src, const uint32_t len, const uint32_t mi,
                     const uint32_t ma, const uint32_t ns, const uint32_t mask_s,
                     const uint32_t mask_l) {
@@ -102,13 +103,12 @@ fcdc_ctx fastcdc_init(uint32_t mi, uint32_t av, uint32_t ma) {
 }
 
 size_t fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end,
-                      chunk_vec *cv) {
+                      on_chunk cb) {
   size_t offset = 0;
   while (((len - offset) >= ctx->ma) || (end && (offset < len))) {
     uint32_t cp = cut(data + offset, len - offset, ctx->mi, ctx->ma, ctx->ns,
                       ctx->mask_s, ctx->mask_l);
-    chunk blk = {.offset = ctx->pos + offset, .len = cp};
-    kv_push(chunk, *cv, blk);
+    cb(ctx->pos + offset, cp);
     offset += cp;
   }
   ctx->pos += offset;
@@ -116,7 +116,7 @@ size_t fastcdc_update(fcdc_ctx *ctx, uint8_t *data, size_t len, int end,
 }
 
 size_t fastcdc_stream(FILE *stream, uint32_t mi, uint32_t av, uint32_t ma,
-                      chunk_vec *cv) {
+                      on_chunk cb) {
   size_t offset = 0;
   int end = 0;
   fcdc_ctx cdc = fastcdc_init(mi, av, ma), *ctx = &cdc;
@@ -126,9 +126,9 @@ size_t fastcdc_stream(FILE *stream, uint32_t mi, uint32_t av, uint32_t ma,
   while (!end) {
     size_t ar = fread(data, 1, rs, stream);
     end = feof(stream);
-    offset += fastcdc_update(ctx, data, ar, end, cv);
+    offset += fastcdc_update(ctx, data, ar, end, cb);
     fseek(stream, offset, SEEK_SET);
   }
   free(data);
-  return kv_size(*cv);
+  return 0;
 }
