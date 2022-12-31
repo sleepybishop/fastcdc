@@ -1,9 +1,9 @@
 OBJS=\
 fastcdc.o
 
-CPPFLAGS :=
+CPPFLAGS := -D_DEFAULT_SOURCE
 CFLAGS := -g -O3 -std=c99 -Wall 
-LDFLAGS := -lm  
+LDLIBS := -lm
 
 all: test
 
